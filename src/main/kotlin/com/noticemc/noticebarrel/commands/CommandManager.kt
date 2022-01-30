@@ -16,32 +16,39 @@
 
 package com.noticemc.noticebarrel.commands
 
-import co.aikar.commands.BaseCommand
-import co.aikar.commands.annotation.CommandAlias
-import co.aikar.commands.annotation.CommandPermission
-import co.aikar.commands.annotation.Single
-import co.aikar.commands.annotation.Subcommand
+import cloud.commandframework.annotations.Argument
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
+import cloud.commandframework.annotations.specifier.Range
 import com.github.shynixn.mccoroutine.launch
 import com.noticemc.noticebarrel.NoticeBarrel.Companion.plugin
 import com.noticemc.noticebarrel.api.QuickShop
 import com.noticemc.noticebarrel.files.Config
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.monster.Shulker
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.block.Barrel
 import org.bukkit.block.Chest
 import org.bukkit.block.data.Directional
 import org.bukkit.command.CommandSender
+import org.bukkit.craftbukkit.v1_18_R1.CraftWorld
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer
 import org.bukkit.entity.Player
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import java.util.*
 
-@CommandAlias("nb|NoticeBarrel")
-class CommandManager : BaseCommand() {
+@CommandMethod("noticebarrel|nb")
+class CommandManager {
 
     @CommandPermission("NoticeBarrel.changeBarrel")
-    @Subcommand("change")
+    @CommandMethod("change")
     fun enableChangeBarrel(sender: CommandSender) {
         val player: Player = sender as Player
         if (canChangeBarrel[player.uniqueId] == null || canChangeBarrel[player.uniqueId] == false) {
@@ -54,21 +61,50 @@ class CommandManager : BaseCommand() {
     }
 
     @CommandPermission("NoticeBarrel.reload")
-    @Subcommand("reload")
+    @CommandMethod("reload")
     fun reload(sender: CommandSender) {
         sender.sendMessage("NoticeBarrelを再読み込みしました")
         Config.load()
     }
 
-    @CommandPermission("NoticeBarrel.barrelsPit")
-    @Subcommand("pit")
-    fun barrelsPit(sender: CommandSender, @Single radius: Int) {
-        plugin!!.launch {
+    @CommandPermission("NoticeBarrel.count")
+    @CommandMethod("count <radius> <material>")
+    fun count(sender: CommandSender, @Argument("radius") @Range(min = "1", max = "256") radius: Int, @Argument("material") material: Material) {
+        plugin.launch {
             val player: Player = sender as Player
-            if (radius !in 1..1024) {
-                player.sendMessage("半径は1-1024である必要があります")
+            val count = counter(player, radius, material)
+
+            player.sendMessage("$count 個の$material が見つかりました")
+        }
+    }
+
+    @CommandPermission("NoticeBarrel.detection")
+    @CommandMethod("detection <radius> <time> <material> ")
+    fun detection(
+        sender: CommandSender,
+        @Argument("radius") @Range(min = "1", max = "256") radius: Int,
+        @Argument("time") @Range(min = "-1", max = "300") time: Int,
+        @Argument("material") material: Material
+    ) {
+        plugin.launch {
+            val player: Player = sender as Player
+            val count = display(player, radius, material, time)
+
+            if (count == null) {
+                player.sendMessage("検出した量が多いため処理を中断しました(over 500)")
                 return@launch
             }
+            player.sendMessage("$count 個の$material を表示しました")
+        }
+    }
+
+    @CommandPermission("NoticeBarrel.barrelsPit")
+    @CommandMethod("pit <radius>")
+    fun barrelsPit(
+        sender: CommandSender, @Argument("radius") @Range(min = "0", max = "256") radius: Int
+    ) {
+        plugin.launch {
+            val player: Player = sender as Player
             val chestList = scan(player, radius)
             sender.sendMessage("${chestList.size}個のチェストを発見しました")
             var count = 0
@@ -118,6 +154,93 @@ class CommandManager : BaseCommand() {
             }
         }
         return items
+    }
+
+    private suspend fun summonGlowingShulker(loc: Location, player: Player, time: Int, world: CraftWorld) {
+        val shulker = Shulker(EntityType.SHULKER, world.handle)
+
+        shulker.setGlowingTag(true)
+        shulker.isInvisible = true
+        shulker.isNoGravity = true
+        shulker.setPos(loc.x + 0.5, loc.y + 0.125, loc.z + 0.5)
+
+        val packetSpawn = ClientboundAddEntityPacket(shulker)
+        val packetMetadata = ClientboundSetEntityDataPacket(shulker.id, shulker.entityData, true)
+        val playerConnection = (player as CraftPlayer).handle.connection.connection
+        playerConnection.send(packetSpawn)
+        playerConnection.send(packetMetadata)
+        if (time > 0) {
+            delay(time * 1000.toLong())
+            val packetDestroy = ClientboundRemoveEntitiesPacket(shulker.id)
+            playerConnection.send(packetDestroy)
+        }
+    }
+
+    private suspend fun display(player: Player, radius: Int, material: Material, time: Int): Int? {
+
+        var count = 0
+
+        player.sendMessage("検索中...")
+        val x = player.location.blockX
+        val z = player.location.blockZ
+        val item: ArrayList<Location> = ArrayList()
+
+        var temp = 0
+        for (i in -radius..radius) {
+            for (j in -64..319) {
+                for (k in -radius..radius) {
+                    val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
+                    if (temp % 1000000 == 0) {
+                        delay(100)
+                    }
+                    if (loc.block.type == material) {
+                        item.add(loc)
+                        count++
+                    }
+                    if (item.size >= 500) {
+                        return null
+                    }
+                    temp++
+                }
+            }
+        }
+        player.sendMessage("検索完了")
+
+        plugin.launch {
+            item.map {
+                async {
+                    summonGlowingShulker(it, player, time, it.world as CraftWorld)
+                }
+            }
+        }
+        return count
+    }
+
+    private suspend fun counter(player: Player, radius: Int, material: Material): Long {
+        var count = 0L
+
+        player.sendMessage("検索中...")
+        val x = player.location.blockX
+        val z = player.location.blockZ
+
+        var temp = 0
+        for (i in -radius..radius) {
+            for (j in -64..319) {
+                for (k in -radius..radius) {
+                    val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
+                    if (temp % 5000000 == 0) {
+                        delay(100)
+                        player.sendMessage("$temp 個のブロックをスキャンしました")
+                    }
+                    if (loc.block.type == material) {
+                        count++
+                    }
+                    temp++
+                }
+            }
+        }
+
+        return count
     }
 
     companion object {

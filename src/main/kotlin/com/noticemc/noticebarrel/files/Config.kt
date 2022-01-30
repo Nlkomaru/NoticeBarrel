@@ -28,7 +28,7 @@ object Config {
     var config: CommentedConfigurationNode? = null
 
     fun load() {
-        val file = File(plugin!!.dataFolder, "config.conf")
+        val file = File(plugin.dataFolder, "config.conf")
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
         }

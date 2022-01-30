@@ -16,13 +16,19 @@
 
 package com.noticemc.noticebarrel
 
-import co.aikar.commands.PaperCommandManager
+import cloud.commandframework.annotations.AnnotationParser
+import cloud.commandframework.bukkit.CloudBukkitCapabilities
+import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
+import cloud.commandframework.meta.SimpleCommandMeta
+import cloud.commandframework.paper.PaperCommandManager
 import com.noticemc.noticebarrel.commands.CommandManager
 import com.noticemc.noticebarrel.event.ChestBreakEvent
 import com.noticemc.noticebarrel.event.ChestClickEvent
 import com.noticemc.noticebarrel.files.Config
 import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.function.Function
 
 class NoticeBarrel : JavaPlugin() {
     override fun onEnable() {
@@ -44,8 +50,31 @@ class NoticeBarrel : JavaPlugin() {
             }
         }
 
-        val manager = PaperCommandManager(this)
-        manager.registerCommand(CommandManager())
+        val commandManager: PaperCommandManager<CommandSender>
+        try {
+            commandManager = PaperCommandManager(
+                this,
+                AsynchronousCommandExecutionCoordinator.simpleCoordinator(),
+                Function.identity(),
+                Function.identity()
+            )
+        } catch (ex: Exception) {
+            ex.printStackTrace()
+            return
+        }
+
+        if (commandManager.queryCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
+            commandManager.registerAsynchronousCompletions()
+        }
+        val annotationParser: AnnotationParser<CommandSender> = AnnotationParser(
+            commandManager,
+            CommandSender::class.java
+        ) {
+            SimpleCommandMeta.empty()
+        }
+
+        annotationParser.parse(CommandManager())
+
         Bukkit.getPluginManager().registerEvents(ChestClickEvent(), this)
         Bukkit.getPluginManager().registerEvents(ChestBreakEvent(), this)
     }
@@ -55,6 +84,6 @@ class NoticeBarrel : JavaPlugin() {
     }
 
     companion object {
-        var plugin: NoticeBarrel? = null
+        lateinit var plugin: NoticeBarrel
     }
 }
