@@ -50,19 +50,19 @@ class Count {
 
         var temp = 0
         for (i in -radius..radius) {
-            for (j in -64..319) {
                 for (k in -radius..radius) {
-                    val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
-                    if (temp % 5000000 == 0) {
-                        delay(100)
-                        player.sendMessage("$temp 個のブロックをスキャンしました")
+                    for (j in -64..player.world.getHighestBlockYAt(x + i, z + k)) {
+                        val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
+                        if (temp % 5000000 == 0) {
+                            delay(100)
+                            player.sendMessage("$temp 個のブロックをスキャンしました")
+                        }
+                        if (loc.block.type == material) {
+                            count++
+                        }
+                        temp++
                     }
-                    if (loc.block.type == material) {
-                        count++
-                    }
-                    temp++
                 }
-            }
         }
         return count
     }

@@ -21,7 +21,7 @@ import cloud.commandframework.bukkit.CloudBukkitCapabilities
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
 import cloud.commandframework.meta.SimpleCommandMeta
 import cloud.commandframework.paper.PaperCommandManager
-import com.noticemc.noticebarrel.commands.Detection
+import com.noticemc.noticebarrel.commands.*
 import com.noticemc.noticebarrel.event.ChestBreakEvent
 import com.noticemc.noticebarrel.event.ChestClickEvent
 import com.noticemc.noticebarrel.files.Config
@@ -50,7 +50,14 @@ class NoticeBarrel : JavaPlugin() {
             }
         }
 
-        val commandManager: PaperCommandManager<CommandSender>
+        setCommand()
+
+        Bukkit.getPluginManager().registerEvents(ChestClickEvent(), this)
+        Bukkit.getPluginManager().registerEvents(ChestBreakEvent(), this)
+    }
+
+    private fun setCommand() {
+        var commandManager: PaperCommandManager<CommandSender>? = null
         try {
             commandManager = PaperCommandManager(
                 this,
@@ -60,6 +67,9 @@ class NoticeBarrel : JavaPlugin() {
             )
         } catch (ex: Exception) {
             ex.printStackTrace()
+        }
+        if (commandManager == null) {
+            server.pluginManager.disablePlugin(this)
             return
         }
 
@@ -74,9 +84,10 @@ class NoticeBarrel : JavaPlugin() {
         }
 
         annotationParser.parse(Detection())
-
-        Bukkit.getPluginManager().registerEvents(ChestClickEvent(), this)
-        Bukkit.getPluginManager().registerEvents(ChestBreakEvent(), this)
+        annotationParser.parse(ChangeBarrel())
+        annotationParser.parse(Count())
+        annotationParser.parse(Pit())
+        annotationParser.parse(Reload())
     }
 
     override fun onDisable() {

@@ -24,6 +24,7 @@ import java.util.*
 
 @CommandMethod("noticebarrel|nb")
 class ChangeBarrel {
+
     @CommandPermission("NoticeBarrel.changeBarrel")
     @CommandMethod("change")
     fun enableChangeBarrel(sender: CommandSender) {
@@ -31,6 +32,7 @@ class ChangeBarrel {
         if (canChangeBarrel[player.uniqueId] == null || canChangeBarrel[player.uniqueId] == false) {
             canChangeBarrel[player.uniqueId] = true
             player.sendMessage("ChangeBarrelモードが有効です")
+            player.sendMessage("$canChangeBarrel")
         } else {
             canChangeBarrel[player.uniqueId] = false
             player.sendMessage("ChangeBarrelモードを無効にしました")

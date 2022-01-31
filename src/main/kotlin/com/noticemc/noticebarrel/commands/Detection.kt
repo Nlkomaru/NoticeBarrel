@@ -89,11 +89,10 @@ class Detection {
         val x = player.location.blockX
         val z = player.location.blockZ
         val item: ArrayList<Location> = ArrayList()
-
         var temp = 0
         for (i in -radius..radius) {
-            for (j in -64..319) {
-                for (k in -radius..radius) {
+            for (k in -radius..radius) {
+                for (j in -64..player.world.getHighestBlockYAt(x + i, z + k)) {
                     val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
                     if (temp % 1000000 == 0) {
                         delay(100)

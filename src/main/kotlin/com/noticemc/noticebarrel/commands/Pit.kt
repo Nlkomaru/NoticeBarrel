@@ -76,21 +76,21 @@ class Pit {
         var count = 0
 
         for (i in -radius..radius) {
-            for (j in -64..319) {
                 for (k in -radius..radius) {
-                    val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
-                    if (count % 1000000 == 0) {
-                        delay(100)
-                        player.sendMessage("${items.size}個のチェストをスキャンされました")
-                    }
-                    if (loc.block.type == Material.CHEST || loc.block.type == Material.TRAPPED_CHEST) {
-                        if (QuickShop.getQuickShopAPI()!!.shopManager.getShop(loc) == null) {
-                            items.add(loc)
+                    for (j in -64..player.world.getHighestBlockYAt(x + i, z + k)) {
+                        val loc = Location(player.world, (x + i).toDouble(), j.toDouble(), (z + k).toDouble())
+                        if (count % 1000000 == 0) {
+                            delay(100)
+                            player.sendMessage("${items.size}個のチェストをスキャンされました")
                         }
+                        if (loc.block.type == Material.CHEST || loc.block.type == Material.TRAPPED_CHEST) {
+                            if (QuickShop.getQuickShopAPI()!!.shopManager.getShop(loc) == null) {
+                                items.add(loc)
+                            }
+                        }
+                        count++
                     }
-                    count++
                 }
-            }
         }
         return items
     }
