@@ -2,7 +2,7 @@ name: NoticeBarrel
 version: '${version}'
 main: com.noticemc.noticebarrel.NoticeBarrel
 api-version: 1.17
-softdepend: [ GriefPrevention ,QuickShop ]
+softdepend: [ GriefPrevention,QuickShop ]
 permissions:
   NoticeBarrel.*:
     description: "Allows the user to use NoticeBarrel."

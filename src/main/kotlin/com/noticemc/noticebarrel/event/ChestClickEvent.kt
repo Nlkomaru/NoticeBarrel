@@ -18,7 +18,7 @@ package com.noticemc.noticebarrel.event
 
 import com.noticemc.noticebarrel.api.GriefPrevention
 import com.noticemc.noticebarrel.api.QuickShop
-import com.noticemc.noticebarrel.commands.CommandManager
+import com.noticemc.noticebarrel.commands.ChangeBarrel
 import me.ryanhamshire.GriefPrevention.ClaimPermission
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.Location
@@ -41,7 +41,7 @@ class ChestClickEvent : Listener {
     fun chestClickEvent(event: PlayerInteractEvent) {
         val player: Player = event.player
 
-        if (CommandManager.canChangeBarrel[player.uniqueId] != true
+        if (ChangeBarrel.canChangeBarrel[player.uniqueId] != true
             || event.action != Action.LEFT_CLICK_BLOCK
         ) {
             return

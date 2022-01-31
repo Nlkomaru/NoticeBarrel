@@ -78,3 +78,9 @@ tasks {
         dependsOn(shadowJar)
     }
 }
+
+tasks {
+    runServer {
+        minecraftVersion("1.18.1")
+    }
+}

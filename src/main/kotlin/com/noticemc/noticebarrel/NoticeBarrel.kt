@@ -21,7 +21,7 @@ import cloud.commandframework.bukkit.CloudBukkitCapabilities
 import cloud.commandframework.execution.AsynchronousCommandExecutionCoordinator
 import cloud.commandframework.meta.SimpleCommandMeta
 import cloud.commandframework.paper.PaperCommandManager
-import com.noticemc.noticebarrel.commands.CommandManager
+import com.noticemc.noticebarrel.commands.Detection
 import com.noticemc.noticebarrel.event.ChestBreakEvent
 import com.noticemc.noticebarrel.event.ChestClickEvent
 import com.noticemc.noticebarrel.files.Config
@@ -73,7 +73,7 @@ class NoticeBarrel : JavaPlugin() {
             SimpleCommandMeta.empty()
         }
 
-        annotationParser.parse(CommandManager())
+        annotationParser.parse(Detection())
 
         Bukkit.getPluginManager().registerEvents(ChestClickEvent(), this)
         Bukkit.getPluginManager().registerEvents(ChestBreakEvent(), this)

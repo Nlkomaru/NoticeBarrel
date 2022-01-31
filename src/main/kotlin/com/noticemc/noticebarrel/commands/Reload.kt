@@ -14,20 +14,19 @@
  *    along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.noticemc.noticebarrel.event
+package com.noticemc.noticebarrel.commands
 
-import com.noticemc.noticebarrel.commands.ChangeBarrel
-import org.bukkit.Material
-import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
-import org.bukkit.event.block.BlockBreakEvent
+import cloud.commandframework.annotations.CommandMethod
+import cloud.commandframework.annotations.CommandPermission
+import com.noticemc.noticebarrel.files.Config
+import org.bukkit.command.CommandSender
 
-class ChestBreakEvent : Listener {
-    @EventHandler
-    fun onChestBreak(event: BlockBreakEvent) {
-        if (ChangeBarrel.canChangeBarrel[event.player.uniqueId] != true) return
-        if (event.block.type == Material.CHEST || event.block.type == Material.TRAPPED_CHEST) {
-            event.isCancelled = true
-        }
+@CommandMethod("noticebarrel|nb")
+class Reload {
+    @CommandPermission("NoticeBarrel.reload")
+    @CommandMethod("reload")
+    fun reload(sender: CommandSender) {
+        sender.sendMessage("NoticeBarrelを再読み込みしました")
+        Config.load()
     }
 }
