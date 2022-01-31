@@ -22,7 +22,7 @@ jobs:
         run: |
           before="${{ steps.tag_version.outputs.new_tag }}"
           after="${before//v/}"
-          sed -e "s/\${version}/$after/i" './src/main/resources/plugin.yml'
+          sed  -e "s/\${version}/$after/i" './src/main/resources/plugin.yml'
           cat ./src/main/resources/plugin.yml
       - name: Change wrapper permissions
         run: chmod +x ./gradlew
