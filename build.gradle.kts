@@ -41,7 +41,7 @@ repositories {
 }
 
 dependencies {
-    paperDevBundle("1.18.1-R0.1-SNAPSHOT")
+    paperDevBundle("1.18.2-R0.1-SNAPSHOT")
     compileOnly("org.maxgamer:QuickShop:6.0.0.0-BETA-20220126.084450-1")
     compileOnly("com.github.TechFortress:GriefPrevention:16.18-RC1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
