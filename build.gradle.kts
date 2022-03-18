@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     paperDevBundle("1.18.2-R0.1-SNAPSHOT")
-    compileOnly("org.maxgamer:QuickShop:6.0.0.0-BETA-20220126.084450-1")
+    compileOnly("org.maxgamer:QuickShop:5.1.0.5")
     compileOnly("com.github.TechFortress:GriefPrevention:16.18-RC1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10-RC")
@@ -53,10 +53,8 @@ dependencies {
     implementation("cloud.commandframework:cloud-kotlin-extensions:1.6.1")
     implementation("cloud.commandframework:cloud-paper:1.6.1")
     implementation("cloud.commandframework:cloud-annotations:1.6.1")
-    implementation("net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT")
     implementation("org.spongepowered:configurate-hocon:4.1.2")
     implementation("org.spongepowered:configurate-extra-kotlin:4.1.2")
-    compileOnly("com.comphenix.protocol:ProtocolLib:4.7.0")
 }
 
 java {
